@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: #020617; color: #e2e8f0; font-family: Arial, Helvetica, sans-serif; }
+::selection { background: #4338ca; color: white; }
+.grid-noise { background-image: linear-gradient(rgba(71,85,105,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(71,85,105,.13) 1px, transparent 1px); background-size: 32px 32px; }
+.score-ring { background: conic-gradient(#34d399 calc(var(--score) * 1%), #1e293b 0); transition: background 700ms ease, transform 700ms ease; }

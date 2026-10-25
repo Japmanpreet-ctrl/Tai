@@ -1,0 +1,22 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { ArrowUpRight, BarChart3, ShieldCheck } from 'lucide-react';
+import { PipelineState } from '@/lib/types/trustui';
+
+const names: Record<string, string> = { functional: 'Functional', visual: 'Visual', accessibility: 'Accessibility', compliance: 'Compliance', security: 'Security' };
+const fallback = { functional: .88, visual: .84, accessibility: .72, compliance: .82, security: .94, overall: .84 };
+
+export default function AnalyticsPage() {
+  const [run, setRun] = useState<PipelineState | null>(null);
+  useEffect(() => { const saved = window.localStorage.getItem('trustui:last-run'); if (saved) setRun(JSON.parse(saved)); }, []);
+  const initial = run?.initialScores ?? fallback; const final = run?.scores ?? fallback;
+  const radar = Object.keys(names).map((key) => ({ metric: names[key], initial: Math.round(initial[key as keyof typeof initial] * 100), final: Math.round(final[key as keyof typeof final] * 100) }));
+  const change = Math.round((final.overall - initial.overall) * 100);
+  return <main className="grid-noise min-h-[calc(100vh-64px)] px-4 py-8 sm:px-6"><div className="mx-auto max-w-6xl"><p className="text-xs font-semibold uppercase tracking-[.22em] text-indigo-300">Verification analytics</p><div className="mt-1 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-3xl font-semibold tracking-tight text-white">Confidence you can inspect.</h1><p className="mt-2 text-sm text-slate-400">Compare the first generation against the verified final result.</p></div><div className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-400">{run ? `Run ${run.id}` : 'Example data — run a prompt in Studio'}</div></div>
+    <div className="mt-7 grid gap-4 md:grid-cols-3"><article className="rounded-xl border border-slate-800 bg-slate-900/80 p-5"><p className="text-sm text-slate-400">Initial trust score</p><p className="mt-2 text-4xl font-semibold text-white">{Math.round(initial.overall * 100)}<span className="text-lg text-slate-500">/100</span></p></article><article className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-5"><p className="text-sm text-emerald-200">Final trust score</p><p className="mt-2 text-4xl font-semibold text-white">{Math.round(final.overall * 100)}<span className="text-lg text-slate-500">/100</span></p></article><article className="rounded-xl border border-slate-800 bg-slate-900/80 p-5"><p className="text-sm text-slate-400">Repair delta</p><p className="mt-2 flex items-center gap-1 text-4xl font-semibold text-emerald-300">{change >= 0 ? '+' : ''}{change}<ArrowUpRight size={23} /></p><p className="mt-1 text-xs text-slate-500">Threshold: 85</p></article></div>
+    <div className="mt-4 grid gap-4 lg:grid-cols-[1.25fr_.75fr]"><section className="h-[420px] rounded-xl border border-slate-800 bg-slate-900/80 p-5"><div className="flex items-center gap-2"><BarChart3 size={17} className="text-indigo-300" /><h2 className="font-semibold text-white">Five-dimensional trust profile</h2></div><ResponsiveContainer width="100%" height="90%"><RadarChart data={radar}><PolarGrid stroke="#334155" /><PolarAngleAxis dataKey="metric" tick={{ fill: '#94a3b8', fontSize: 12 }} /><Radar name="Initial" dataKey="initial" stroke="#f59e0b" fill="#f59e0b" fillOpacity={.18} /><Radar name="Final" dataKey="final" stroke="#34d399" fill="#34d399" fillOpacity={.22} /><Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8 }} /></RadarChart></ResponsiveContainer></section>
+      <section className="rounded-xl border border-slate-800 bg-slate-900/80 p-5"><div className="flex items-center gap-2"><ShieldCheck size={17} className="text-emerald-300" /><h2 className="font-semibold text-white">Verifier policy</h2></div><div className="mt-6 space-y-4 text-sm text-slate-400"><p>The composite is equally weighted across functional execution, visual structure, accessibility, specification coverage, and static safety.</p><div className="rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs text-indigo-200">T = 0.20(s₁ + s₂ + s₃ + s₄ + s₅)</div><p className="text-xs leading-5">Scores below 0.85 open a targeted repair loop. After three missed thresholds, the result is escalated with localized findings.</p></div></section></div>
+  </div></main>;
+}
